@@ -1,0 +1,83 @@
+     1  #!env xonsh
+
+     2  import secrets
+     3  import atexit
+
+     4  from urllib.parse import urlparse
+     5  from os import path
+
+     6  sandbox = f"/tmp/sandbox/{secrets.token_hex(16)}"
+     7  atexit.register(lambda: $[rm -rf @(sandbox)])
+
+     8  rm -rf @(sandbox)
+     9  mkdir -p @(sandbox)
+    10  cd @(sandbox)
+
+
+    11  def menu():
+    12      print(
+    13          "======== [Babyheap] ========\n"
+    14          "1. Malloc\n"
+    15          "2. Show\n"
+    16          "3. List\n"
+    17          "4. Free\n"
+    18          "0. Exit\n"
+    19          "----------------------------\n"
+    20      )
+
+
+    21  while True:
+    22      menu()
+    23      option = input("> ")
+
+    24      if option == "1":
+    25          file = secrets.token_hex(8) + ".txt"
+    26          size = input("Size: ")
+    27          if not size.isdigit():
+    28              exit -1
+
+    29          size = int(size)
+    30          content = input("Content: ")[:size]
+    31          echo @(content) | cowsay > @(file)
+    32          echo f"Note {file} created"
+
+    33      elif option == "2":
+    34          file = input("Note name: ")
+    35          if path.exists(file):
+    36              nl @(file)
+    37          else:
+    38              echo f"Note '{file}' does not exist"
+    39
+    40      elif option == "3":
+    41          for file in gp`./*.txt`:
+    42              echo "[+]" @(file.name)
+    43
+    44      elif option == "4":
+    45          file = path.basename(input("Note name: "))
+    46          if path.exists(file):
+    47              rm -f @(file)
+    48              echo f"Deleted '{file}'"
+    49          else:
+    50              echo f"free(): double free detected in tcache 1"
+
+    51      elif option == "9487":
+    52          url = input("URL: ")
+    53          if urlparse(url).path.endswith(".txt"):
+    54              wget --no-clobber @(url)
+    55          else:
+    56              echo "Should be a .txt file"
+    57
+    58      elif option == "9527":
+    59          zip export.zip *
+    60          link = $(curl --upload-file export.zip https://transfer.sh/export.zip)
+    61          echo f"Exported to {link}"
+    62          rm -f export.zip
+
+    63      elif option == "0":
+    64          echo "Exiting..."
+    65          break
+    66
+    67      else:
+    68          echo "Invalid option"
+
+    69      print()
